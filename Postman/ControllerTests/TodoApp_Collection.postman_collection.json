@@ -1,0 +1,113 @@
+{
+    "info": {
+        "name": "TodoApp API",
+        "_postman_id": "8a8473a1-40f6-4f33-8cfa-61eeb53432ad",
+        "description": "Postman collection for testing TodoApp API endpoints",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get All TodoItems",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/TodoItems",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "TodoItems"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get TodoItem by ID",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/TodoItems/{{todoItemId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "TodoItems",
+                        "{{todoItemId}}"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Create New TodoItem",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"title\": \"New Task\", \"isCompleted\": false}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/TodoItems",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "TodoItems"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Update TodoItem by ID",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"id\": \"{{todoItemId}}\", \"title\": \"Updated Task\", \"isCompleted\": true}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/TodoItems/{{todoItemId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "TodoItems",
+                        "{{todoItemId}}"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Delete TodoItem by ID",
+            "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/TodoItems/{{todoItemId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "TodoItems",
+                        "{{todoItemId}}"
+                    ]
+                }
+            }
+        }
+    ]
+}
