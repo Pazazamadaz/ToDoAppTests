@@ -85,7 +85,7 @@ namespace TodoApp.Tests
         public async Task DeleteUser_RemovesUser()
         {
             // Act
-            var result = await _controller.DeleteUser(1);
+            var result = await _controller.DeleteUser("AdminUser");
 
             // Assert
             Assert.IsType<NoContentResult>(result);
@@ -96,7 +96,7 @@ namespace TodoApp.Tests
         public async Task DeleteUser_ReturnsNotFound_ForInvalidId()
         {
             // Act
-            var result = await _controller.DeleteUser(999);
+            var result = await _controller.DeleteUser("Invalid User");
 
             // Assert
             var actionResult = Assert.IsType<NotFoundObjectResult>(result);
