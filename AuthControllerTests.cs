@@ -144,7 +144,7 @@ namespace TodoApp.Tests
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            Assert.Equal("Invalid username format", badRequestResult.Value);
+            Assert.Equal("Invalid username format.", badRequestResult.Value);
         }
 
     }
