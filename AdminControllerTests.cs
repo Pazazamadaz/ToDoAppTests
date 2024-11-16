@@ -36,6 +36,27 @@ namespace TodoApp.Tests
                 PasswordSalt = new byte[] { 0x00 }
             };
             _context.Users.Add(user);
+
+            // seed initial todo items
+            var todoItem1 = new TodoItem
+            {
+                Id = 1,
+                Title = "Todo Item 1",
+                IsCompleted = false,
+                UserId = user.Id,
+            };
+            _context.TodoItems.Add(todoItem1);
+
+            // seed initial todo items
+            var todoItem2 = new TodoItem
+            {
+                Id = 2,
+                Title = "Todo Item 2",
+                IsCompleted = true,
+                UserId = user.Id,
+            };
+            _context.TodoItems.Add(todoItem2);
+
             _context.SaveChanges();
 
             var claims = new List<Claim>
@@ -187,5 +208,22 @@ namespace TodoApp.Tests
             // Assert
             var actionResult = Assert.IsType<ForbidResult>(result.Result);
         }
+
+        [Fact]
+        public async Task DeleteUser_DeletesAssociatedTodoItems()
+        {
+            // Assign
+            var user = new UserDeleteDto { Username = "AdminUser" };
+
+            // Act
+            var result = await _controller.DeleteUser(user);
+            var todoItems = _context.TodoItems.Where(t => t.UserId == 1).ToList();
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+            Assert.Null(await _context.Users.FindAsync(1));            
+            Assert.Empty(todoItems);
+        }
+
     }
 }
