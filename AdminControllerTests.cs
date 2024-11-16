@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TodoApp.Controllers;
 using TodoApp.Data;
+using TodoApp.Dtos;
 using TodoApp.Models;
 using Xunit;
 
@@ -84,8 +85,11 @@ namespace TodoApp.Tests
         [Fact]
         public async Task DeleteUser_RemovesUser()
         {
+            // Assign 
+            var user = new UserDeleteDto { Username = "AdminUser" };
+
             // Act
-            var result = await _controller.DeleteUser("AdminUser");
+            var result = await _controller.DeleteUser(user);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
@@ -95,8 +99,10 @@ namespace TodoApp.Tests
         [Fact]
         public async Task DeleteUser_ReturnsNotFound_ForInvalidId()
         {
+            // Assign
+            var user = new UserDeleteDto { Username = "Invalid User" };
             // Act
-            var result = await _controller.DeleteUser("Invalid User");
+            var result = await _controller.DeleteUser(user);
 
             // Assert
             var actionResult = Assert.IsType<NotFoundObjectResult>(result);
