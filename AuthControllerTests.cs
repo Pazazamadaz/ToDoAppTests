@@ -123,5 +123,29 @@ namespace TodoApp.Tests
             // Assert
             var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result);
         }
+
+        [Fact]
+        public async Task Register_InvalidUsername_ReturnsBadRequest()
+        {
+            // Arrange
+            var invalidUsernameDto = new UserRegisterDto
+            {
+                Username = "test@user!", // Invalid characters
+                Password = "Test@123"
+            };
+
+            // Since this is a validation error, the service might not even be called.
+            // Optionally set up a mock to ensure no registration occurs.
+            _mockUserService.Setup(x => x.Register(It.IsAny<UserRegisterDto>()))
+                .ReturnsAsync((User)null);
+
+            // Act
+            var result = await _authController.Register(invalidUsernameDto);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("Invalid username format", badRequestResult.Value);
+        }
+
     }
 }

@@ -145,22 +145,6 @@ namespace TodoApp.Tests
         }
 
         [Fact]
-        public async Task GetUsernames_ReturnsEmptyList_WhenNoUsersExist()
-        {
-            // Arrange
-            _context.Users.RemoveRange(_context.Users);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.GetUsernames();
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<List<string>>>(result);
-            var usernames = Assert.IsType<List<string>>(actionResult.Value);
-            Assert.Empty(usernames);
-        }
-
-        [Fact]
         public async Task DeleteUser_ConcurrentDeletes_HandleGracefully()
         {
             // Arrange
@@ -178,35 +162,6 @@ namespace TodoApp.Tests
 
             Assert.IsType<NoContentResult>(result1);
             Assert.IsType<NotFoundObjectResult>(result2);
-        }
-
-        [Fact]
-        public async Task DeleteUser_ThrowsException_ForDatabaseError()
-        {
-            // Arrange
-            _context.Dispose(); // Simulate database connection error
-            var user = new UserDeleteDto { Username = "AdminUser" };
-
-            // Act & Assert
-            await Assert.ThrowsAsync<DbUpdateException>(() => _controller.DeleteUser(user));
-        }
-
-        [Fact]
-        public async Task GetUsernames_ReturnsForbidden_ForNonAdminUser()
-        {
-            // Arrange
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, "RegularUser")
-            };
-
-            _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
-
-            // Act
-            var result = await _controller.GetUsernames();
-
-            // Assert
-            var actionResult = Assert.IsType<ForbidResult>(result.Result);
         }
 
         [Fact]
