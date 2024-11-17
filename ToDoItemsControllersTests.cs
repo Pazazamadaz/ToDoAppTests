@@ -184,5 +184,28 @@ namespace TodoApp.Tests
             // Assert
             Assert.IsType<NotFoundResult>(result);
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task PostTodoItem_SetsIsPriorityCorrectly(bool isPriority)
+        {
+            // Arrange
+            var newItem = new TodoItemNew { Title = "Task 3", IsCompleted = false, IsPriority = isPriority };
+
+            // Act
+            var result = await _controller.PostTodoItem(newItem);
+
+            // Assert that the result is an ActionResult<TodoItem>
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var createdItem = Assert.IsType<TodoItem>(createdAtActionResult.Value);
+
+            // Ensure the status code is 201 Created
+            Assert.Equal(201, createdAtActionResult.StatusCode);
+
+            // Verify the IsPriority of the created item
+            Assert.Equal(isPriority, createdItem.IsPriority); // Assert the IsPriority value matches what was sent
+        }
+
     }
 }
