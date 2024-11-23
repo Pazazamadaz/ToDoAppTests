@@ -1,12 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TodoApp.Controllers;
 using TodoApp.Data;
 using TodoApp.Models;
-using Xunit;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
@@ -16,6 +12,7 @@ namespace TodoApp.Tests
     {
         private readonly AppDbContext _context;
         private readonly ColourThemeController _controller;
+        private readonly string _coloursJsonString;
 
         public ColourThemeControllerTests()
         {
@@ -26,8 +23,7 @@ namespace TodoApp.Tests
             _context = new AppDbContext(options);
             _controller = new ColourThemeController(_context);
 
-            // Seed initial data
-            string coloursJsonString = "[{\"colourProperty\": \"--button-bgcolour\", \"colourValue\": \"#00796b\"}, " +
+            _coloursJsonString = "[{\"colourProperty\": \"--button-bgcolour\", \"colourValue\": \"#00796b\"}, " +
                            "{\"colourProperty\": \"--button-hover-bgcolour\", \"colourValue\": \"#004d40\"}, " +
                            "{\"colourProperty\": \"--button-text-colour\", \"colourValue\": \"#ffffff\"}, " +
                            "{\"colourProperty\": \"--input-bgcolour\", \"colourValue\": \"#e0f7fa\"}, " +
@@ -41,7 +37,8 @@ namespace TodoApp.Tests
                            "{\"colourProperty\": \"--portal-switch-button-bgcolour\", \"colourValue\": \"#409EFF\"}]";
 
             _context.ColourThemes.AddRange(
-                new ColourTheme { Id = 1, Name = "Default Theme", Colours = coloursJsonString, SysDefined = true, IsDefault = true }
+                new ColourTheme { Id = 1, Name = "Default Theme", Colours = _coloursJsonString, SysDefined = true, IsDefault = true, IsActive = true },
+                new ColourTheme { Id = 2, Name = "User Theme", Colours = _coloursJsonString, SysDefined = false, IsDefault = false, UserId = 1, IsActive = true }
             );
             _context.SaveChanges();
 
@@ -81,13 +78,15 @@ namespace TodoApp.Tests
         public async Task GetColourTheme_ReturnsCorrectTheme()
         {
             // Act
-            var result = await _controller.GetColourTheme(1);
+            var result = await _controller.GetColourTheme(2);
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<ColourTheme>>(result);
             var theme = Assert.IsType<ColourTheme>(actionResult.Value);
-            Assert.Equal("Light Theme", theme.Name);
-            Assert.True(theme.IsDefault);
+            Assert.Equal("User Theme", theme.Name);
+            Assert.False(theme.IsDefault);
+            Assert.False(theme.SysDefined);
+            Assert.NotNull(theme.UserId);
         }
 
         [Fact]
@@ -111,28 +110,41 @@ namespace TodoApp.Tests
         [Fact]
         public async Task PutColourTheme_UpdatesTheme()
         {
-            // Arrange
-            var updatedTheme = new ColourTheme { Id = 1, Name = "Updated Theme", Colours = "yellow,purple", SysDefined = true };
+            // Assign
+            int colourThemeId = 2;
+
+            var updatedTheme = new ColourTheme
+            {
+                Id = colourThemeId,
+                Name = "Updated Theme",
+                Colours = _coloursJsonString,
+                IsActive = true,
+                IsDefault = false,
+                SysDefined = false,
+                UserId = 1
+            };
 
             // Act
-            var result = await _controller.PutColourTheme(1, updatedTheme);
+            var result = await _controller.PutColourTheme(updatedTheme);
+            var theme = await _controller.GetColourTheme(colourThemeId);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
-            var theme = await _controller.GetColourTheme(1);
             Assert.Equal("Updated Theme", theme.Value.Name);
-            Assert.Equal("yellow,purple", theme.Value.Colours);
+            Assert.Equal(_coloursJsonString, theme.Value.Colours);
         }
 
         [Fact]
         public async Task DeleteColourTheme_RemovesTheme()
         {
+            // Assign
+            int themeId = 2;
             // Act
-            var result = await _controller.DeleteColourTheme(1);
+            var result = await _controller.DeleteColourTheme(themeId);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
-            var theme = await _controller.GetColourTheme(1);
+            var theme = await _controller.GetColourTheme(themeId);
             Assert.IsType<NotFoundResult>(theme.Result);
         }
 
@@ -150,13 +162,13 @@ namespace TodoApp.Tests
         public async Task PutColourTheme_ReturnsBadRequest_ForMismatchedId()
         {
             // Arrange
-            var theme = new ColourTheme { Id = 1, Name = "Mismatched Theme", Colours = "black,white" };
+            var theme = new ColourTheme { Id = 999, Name = "Mismatched Theme", Colours = "black,white" };
 
             // Act
-            var result = await _controller.PutColourTheme(2, theme);
+            var result = await _controller.PutColourTheme(theme);
 
             // Assert
-            Assert.IsType<BadRequestResult>(result);
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]
