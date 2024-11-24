@@ -12,7 +12,7 @@ namespace TodoApp.Tests
     {
         private readonly AppDbContext _context;
         private readonly ColourThemeController _controller;
-        private readonly string _coloursJsonString;
+        private readonly List<Colour> _colours;
 
         public ColourThemeControllerTests()
         {
@@ -23,22 +23,27 @@ namespace TodoApp.Tests
             _context = new AppDbContext(options);
             _controller = new ColourThemeController(_context);
 
-            _coloursJsonString = "[{\"colourProperty\": \"--button-bgcolour\", \"colourValue\": \"#00796b\"}, " +
-                           "{\"colourProperty\": \"--button-hover-bgcolour\", \"colourValue\": \"#004d40\"}, " +
-                           "{\"colourProperty\": \"--button-text-colour\", \"colourValue\": \"#ffffff\"}, " +
-                           "{\"colourProperty\": \"--input-bgcolour\", \"colourValue\": \"#e0f7fa\"}, " +
-                           "{\"colourProperty\": \"--input-border-colour\", \"colourValue\": \"#b2ebf2\"}, " +
-                           "{\"colourProperty\": \"--table-header-bgcolour\", \"colourValue\": \"#f1f1db\"}, " +
-                           "{\"colourProperty\": \"--table-border-colour\", \"colourValue\": \"#ddd\"}, " +
-                           "{\"colourProperty\": \"--modal-bgcolour\", \"colourValue\": \"white\"}, " +
-                           "{\"colourProperty\": \"--modal-overlay-bgcolour\", \"colourValue\": \"rgba(0, 0, 0, 0.5)\"}, " +
-                           "{\"colourProperty\": \"--loading-spinner-colour\", \"colourValue\": \"#00796b\"}, " +
-                           "{\"colourProperty\": \"--logout-button-bgcolour\", \"colourValue\": \"#f56c6c\"}, " +
-                           "{\"colourProperty\": \"--portal-switch-button-bgcolour\", \"colourValue\": \"#409EFF\"}]";
+            _colours = new List<Colour>
+            {
+                new Colour { ColourProperty = "--button-bgcolour", ColourValue = "#00796b", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--button-hover-bgcolour", ColourValue = "#004d40", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--button-text-colour", ColourValue = "#ffffff", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--input-bgcolour", ColourValue = "#e0f7fa", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--input-border-colour", ColourValue = "#b2ebf2", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--table-header-bgcolour", ColourValue = "#f1f1db", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--table-border-colour", ColourValue = "#ddd", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--modal-bgcolour", ColourValue = "white", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--modal-overlay-bgcolour", ColourValue = "rgba(0, 0, 0, 0.5)", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--loading-spinner-colour", ColourValue = "#00796b", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--logout-button-bgcolour", ColourValue = "#f56c6c", ColourThemeId = 1 },
+                new Colour { ColourProperty = "--portal-switch-button-bgcolour", ColourValue = "#409EFF", ColourThemeId = 1 }
+            };
 
+
+            // Update ColourTheme objects to use List<Colour>
             _context.ColourThemes.AddRange(
-                new ColourTheme { Id = 1, Name = "Default Theme", Colours = _coloursJsonString, SysDefined = true, IsDefault = true, IsActive = true },
-                new ColourTheme { Id = 2, Name = "User Theme", Colours = _coloursJsonString, SysDefined = false, IsDefault = false, UserId = 1, IsActive = true }
+                new ColourTheme { Id = 1, Name = "Default Theme", Colours = _colours, SysDefined = true, IsDefault = true, IsActive = true },
+                new ColourTheme { Id = 2, Name = "User Theme", Colours = _colours, SysDefined = false, IsDefault = false, UserId = 1, IsActive = true }
             );
             _context.SaveChanges();
 
@@ -93,7 +98,7 @@ namespace TodoApp.Tests
         public async Task PostColourTheme_CreatesNewTheme()
         {
             // Arrange
-            var newTheme = new ColourTheme { Name = "Custom Theme", Colours = "red,green", UserId = 1 };
+            var newTheme = new ColourTheme { Name = "Custom Theme", Colours = _colours, UserId = 1 };
 
             // Act
             var result = await _controller.PostColourTheme(newTheme);
@@ -103,7 +108,7 @@ namespace TodoApp.Tests
             var createdTheme = Assert.IsType<ColourTheme>(createdResult.Value);
 
             Assert.Equal("Custom Theme", createdTheme.Name);
-            Assert.Equal("red,green", createdTheme.Colours);
+            Assert.Equal(_colours, createdTheme.Colours);
             Assert.Equal(1, createdTheme.UserId);
         }
 
@@ -117,7 +122,7 @@ namespace TodoApp.Tests
             {
                 Id = colourThemeId,
                 Name = "Updated Theme",
-                Colours = _coloursJsonString,
+                Colours = _colours,
                 IsActive = true,
                 IsDefault = false,
                 SysDefined = false,
@@ -131,7 +136,7 @@ namespace TodoApp.Tests
             // Assert
             Assert.IsType<NoContentResult>(result);
             Assert.Equal("Updated Theme", theme.Value.Name);
-            Assert.Equal(_coloursJsonString, theme.Value.Colours);
+            Assert.Equal(_colours, theme.Value.Colours);
         }
 
         [Fact]
@@ -162,7 +167,7 @@ namespace TodoApp.Tests
         public async Task PutColourTheme_ReturnsBadRequest_ForMismatchedId()
         {
             // Arrange
-            var theme = new ColourTheme { Id = 999, Name = "Mismatched Theme", Colours = "black,white" };
+            var theme = new ColourTheme { Id = 999, Name = "Mismatched Theme", Colours = _colours };
 
             // Act
             var result = await _controller.PutColourTheme(theme);
