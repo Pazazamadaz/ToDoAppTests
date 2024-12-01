@@ -42,8 +42,8 @@ namespace TodoApp.Tests
 
             // Update ColourTheme objects to use List<Colour>
             _context.ColourThemes.AddRange(
-                new ColourTheme { Id = 1, Name = "Default Theme", Colours = _colours, SysDefined = true, IsDefault = true, IsActive = true },
-                new ColourTheme { Id = 2, Name = "User Theme", Colours = _colours, SysDefined = false, IsDefault = false, UserId = 1, IsActive = true }
+                new ColourTheme { Id = 1, Name = "Default Theme", Colours = _colours, SystemDefined = true, IsDefault = true, IsActive = true },
+                new ColourTheme { Id = 2, Name = "User Theme", Colours = _colours, SystemDefined = false, IsDefault = false, UserId = 1, IsActive = true }
             );
             _context.SaveChanges();
 
@@ -90,7 +90,7 @@ namespace TodoApp.Tests
             var theme = Assert.IsType<ColourTheme>(actionResult.Value);
             Assert.Equal("User Theme", theme.Name);
             Assert.False(theme.IsDefault);
-            Assert.False(theme.SysDefined);
+            Assert.False(theme.SystemDefined);
             Assert.NotNull(theme.UserId);
         }
 
@@ -125,7 +125,7 @@ namespace TodoApp.Tests
                 Colours = _colours,
                 IsActive = true,
                 IsDefault = false,
-                SysDefined = false,
+                SystemDefined = false,
                 UserId = 1
             };
 
