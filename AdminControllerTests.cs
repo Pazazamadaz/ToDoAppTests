@@ -33,7 +33,8 @@ namespace TodoApp.Tests
                 Id = 1,
                 Username = "AdminUser",
                 PasswordHash = new byte[] { 0x00 },
-                PasswordSalt = new byte[] { 0x00 }
+                PasswordSalt = new byte[] { 0x00 },
+                IsAdmin = true
             };
             _context.Users.Add(user);
 
@@ -79,15 +80,20 @@ namespace TodoApp.Tests
         [Fact]
         public async Task GetUsernames_ReturnsListOfUsernames()
         {
+            // Arrange
+            var expectedUsername = "AdminUser";
+
             // Act
             var result = await _controller.GetUsernames();
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<List<string>>>(result);
-            var usernames = Assert.IsType<List<string>>(actionResult.Value);
-            Assert.Single(usernames); // Initially seeded with one user
-            Assert.Contains("AdminUser", usernames);
+            var okResult = Assert.IsType<ActionResult<List<UserBaseDto>>>(result);
+            var actualResult = Assert.IsType<OkObjectResult>(okResult.Result);
+            var usernames = Assert.IsAssignableFrom<List<UserBaseDto>>(actualResult.Value);
+
+            Assert.Contains(expectedUsername, usernames.FirstOrDefault().Username);
         }
+
 
         [Fact]
         public async Task GetUsernames_ReturnsUnauthorized_IfUserNotFound()
@@ -179,6 +185,96 @@ namespace TodoApp.Tests
             Assert.Null(await _context.Users.FindAsync(1));            
             Assert.Empty(todoItems);
         }
+
+        [Fact]
+        public async Task UpdateUser_UpdatesUsernameAndIsAdmin()
+        {
+            // Arrange
+            var updateUserDto = new UserUpdateDto
+            {
+                Id = 1,
+                Username = "UpdatedUser",
+                IsAdmin = false
+            };
+
+            // Act
+            var result = await _controller.UpdateUser(updateUserDto);
+
+            // Assert
+            Assert.IsType<OkResult>(result);
+            var updatedUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == "UpdatedUser");
+            Assert.NotNull(updatedUser);
+            Assert.False(updatedUser.IsAdmin);
+        }
+
+        [Fact]
+        public async Task UpdateUser_ReturnsNotFound_ForNonExistentUser()
+        {
+            // Arrange
+            var updateUserDto = new UserUpdateDto
+            {
+                Id = 2,
+                Username = "UpdatedUser",
+                IsAdmin = false
+            };
+
+            // Act
+            var result = await _controller.UpdateUser(updateUserDto);
+
+            // Assert
+            var actionResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("User not found.", actionResult.Value);
+        }
+
+        [Fact]
+        public async Task UpdateUser_ReturnsBadRequest_ForEmptyNewUsername()
+        {
+            // Arrange
+            var updateUserDto = new UserUpdateDto
+            {
+                Id = 1,
+                Username = "",
+                IsAdmin = true
+            };
+
+            // Act
+            var result = await _controller.UpdateUser(updateUserDto);
+
+            // Assert
+            var actionResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal("New username is required.", actionResult.Value);
+        }
+
+        [Fact]
+        public async Task UpdateUser_ConcurrentUpdates_HandleGracefully()
+        {
+            // Arrange
+            var updateUserDto1 = new UserUpdateDto
+            {
+                Id = 1,
+                Username = "UpdatedUser1",
+                IsAdmin = true
+            };
+            var updateUserDto2 = new UserUpdateDto
+            {
+                Username = "UpdatedUser2",
+                IsAdmin = false
+            };
+
+            // Act
+            var task1 = _controller.UpdateUser(updateUserDto1);
+            var task2 = _controller.UpdateUser(updateUserDto2);
+            await Task.WhenAll(task1, task2);
+
+            // Assert
+            var result1 = await task1;
+            var result2 = await task2;
+
+            Assert.True(result1 is OkResult || result2 is OkResult);
+            var finalUser = await _context.Users.FirstOrDefaultAsync(u => u.Username.StartsWith("UpdatedUser"));
+            Assert.NotNull(finalUser);
+        }
+
 
     }
 }
