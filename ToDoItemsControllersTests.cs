@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TodoApp.Controllers;
 using TodoApp.Data;
+using TodoApp.Dtos;
 using TodoApp.Models;
 
 namespace TodoApp.Tests
@@ -89,7 +90,7 @@ namespace TodoApp.Tests
         public async Task PostTodoItem_CreatesNewItem()
         {
             // Arrange
-            var newItem = new TodoItemNew { Title = "Task 3", IsCompleted = false };
+            var newItem = new TodoItemNewDto { Title = "Task 3", IsCompleted = false };
 
             // Act
             var result = await _controller.PostTodoItem(newItem);
@@ -187,7 +188,7 @@ namespace TodoApp.Tests
         public async Task PostTodoItem_SetsIsPriorityCorrectly(bool isPriority)
         {
             // Arrange
-            var newItem = new TodoItemNew { Title = "Task 3", IsCompleted = false, IsPriority = isPriority };
+            var newItem = new TodoItemNewDto { Title = "Task 3", IsCompleted = false, IsPriority = isPriority };
 
             // Act
             var result = await _controller.PostTodoItem(newItem);
